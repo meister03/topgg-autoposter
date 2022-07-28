@@ -24,7 +24,7 @@ export class DJSSharderPoster extends BasePoster implements BasePosterInterface 
 
     const Discord = require('discord.js')
 
-    if (!(client instanceof Discord.ShardingManager)) throw new Error('Not a discord.js ShardingManager.')
+   // if (!(client instanceof Discord.ShardingManager)) throw new Error('Not a discord.js ShardingManager.')
 
     super(token, options)
 
@@ -38,26 +38,26 @@ export class DJSSharderPoster extends BasePoster implements BasePosterInterface 
   }
 
   public clientReady (): boolean {
-    return this.client.shards.size > 0 && this.client.shards.every(x => x.ready)
+    return this.client.clusters.size > 0 && [...this.client.clusters.values()].every(x => x.ready)
   }
 
   public waitForReady(fn: () => void) {
     const listener = (shard) => {
-      if (shard.id !== (this.client.totalShards as number) - 1) return
+      if (shard.id !== (this.client.totalClusters as number) - 1) return
 
-      this.client.off('shardCreate', listener)
+      this.client.off('clusterCreate', listener)
       shard.once('ready', () => {
         fn()
       })
     }
-    this.client.on('shardCreate', listener)
+    this.client.on('clusterCreate', listener)
   }
 
   public async getStats (): Promise<BotStats> {
     const response = await this.client.fetchClientValues('guilds.cache.size') as number[]
     return {
       serverCount: response.reduce((a, b) => a + b, 0),
-      shardCount: response.length
+      shardCount: this.client.totalShards
     }
   }
 }
