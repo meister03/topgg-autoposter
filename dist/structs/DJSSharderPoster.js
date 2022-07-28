@@ -18,8 +18,7 @@ class DJSSharderPoster extends BasePoster_1.BasePoster {
         if (!client)
             throw new Error('Missing client');
         const Discord = require('discord.js');
-        if (!(client instanceof Discord.ShardingManager))
-            throw new Error('Not a discord.js ShardingManager.');
+        // if (!(client instanceof Discord.ShardingManager)) throw new Error('Not a discord.js ShardingManager.')
         super(token, options);
         this.client = client;
         this._binder({
@@ -29,24 +28,24 @@ class DJSSharderPoster extends BasePoster_1.BasePoster {
         });
     }
     clientReady() {
-        return this.client.shards.size > 0 && this.client.shards.every(x => x.ready);
+        return this.client.clusters.size > 0 && [...this.client.clusters.values()].every(x => x.ready);
     }
     waitForReady(fn) {
         const listener = (shard) => {
-            if (shard.id !== this.client.totalShards - 1)
+            if (shard.id !== this.client.totalClusters - 1)
                 return;
-            this.client.off('shardCreate', listener);
+            this.client.off('clusterCreate', listener);
             shard.once('ready', () => {
                 fn();
             });
         };
-        this.client.on('shardCreate', listener);
+        this.client.on('clusterCreate', listener);
     }
     async getStats() {
         const response = await this.client.fetchClientValues('guilds.cache.size');
         return {
             serverCount: response.reduce((a, b) => a + b, 0),
-            shardCount: response.length
+            shardCount: this.client.totalShards
         };
     }
 }
