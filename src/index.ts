@@ -37,7 +37,7 @@ export function AutoPoster (token: string, client: any, options?: PosterOptions)
 
   if (DiscordJS && client instanceof DiscordJS.exports.Client) return new DJSPoster(token, client, options)
   if (Eris && client instanceof Eris.exports.Client) return new ErisPoster(token, client, options)
-  if (DiscordJS && client instanceof DiscordJS.exports.ShardingManager) return new DJSSharderPoster(token, client, options)
+  if (DiscordJS && client.clusters) return new DJSSharderPoster(token, client, options)
   if (DR && client instanceof DR.exports.Master) return new RosePoster(token, client, options)
 
   throw new Error('Unsupported client')
